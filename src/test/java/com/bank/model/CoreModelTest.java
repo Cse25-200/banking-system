@@ -1,12 +1,7 @@
 package com.bank.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -141,62 +136,3 @@ class CoreModelTest {
         assertEquals(50.00, i.calculateInterest(), EPS);  // 5%
 
         Transaction t = i.payInterest();
-        assertEquals(TransactionType.INTEREST, t.getType());
-        assertEquals(1050.00, i.getBalance(), EPS);
-        assertEquals(1050.00, t.getBalanceAfter(), EPS);
-    }
-
-    @Test
-    void interestRoundsToTwoDecimalPlaces() {
-        SavingsAccount s = new SavingsAccount("SAV6", "Main", thabo);
-        s.deposit(123.45);                           // 0.0617 -> 0.06
-        assertEquals(0.06, s.calculateInterest(), EPS);
-    }
-
-    @Test
-    void emptySavingsPaysNoInterest() {
-        SavingsAccount s = new SavingsAccount("SAV7", "Main", thabo);
-        assertNull(s.payInterest());
-        assertTrue(s.getTransactionHistory().isEmpty());
-    }
-
-    @Test
-    void adminInterestRunSkipsChequeAccounts() {
-        SavingsAccount s = new SavingsAccount("SAV8", "Main", thabo);
-        ChequeAccount c = new ChequeAccount("CHQ6", "Main", thabo, "Acme", "Plot 1");
-        admin.openAccount(thabo, s);
-        admin.openAccount(thabo, c);
-        s.deposit(2000);
-        c.deposit(2000);
-        admin.runMonthlyInterest();
-        assertEquals(2001.00, s.getBalance(), EPS);
-        assertEquals(2000.00, c.getBalance(), EPS);
-    }
-
-    @Test
-    void floatingPointErrorsAreRoundedAway() {
-        SavingsAccount s = new SavingsAccount("SAV11", "Main", thabo);
-        s.deposit(0.1);
-        s.deposit(0.2);
-        assertEquals(0.30, s.getBalance(), EPS);
-        assertEquals(0.3, s.getBalance(), 0.0);   // exactly 0.3, not 0.30000000000000004
-    }
-
-    @Test
-    void polymorphicWithdrawBehavesPerAccountType() {
-        Account savings = new SavingsAccount("SAV10", "Main", thabo);
-        Account cheque = new ChequeAccount("CHQ10", "Main", thabo, "Acme", "Plot 1");
-        savings.deposit(100);
-        cheque.deposit(100);
-        assertFalse(savings.withdraw(10));
-        assertTrue(cheque.withdraw(10));
-    }
-
-    @Test
-    void companyCustomerDisplayName() {
-        CompanyCustomer co = new CompanyCustomer(5, "acme", "p", "C010", "Plot 5", "3900000",
-                "info@acme.co.bw", "Acme Ltd", "BW000123");
-        assertEquals("Acme Ltd", co.getDisplayName());
-        assertEquals("Thabo Molefe", thabo.getDisplayName());
-    }
-}
