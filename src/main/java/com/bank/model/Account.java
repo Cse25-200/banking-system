@@ -17,6 +17,7 @@ public abstract class Account implements Transactable {
     private final LocalDate dateOpened;
     private final Customer owner;
     private final List<Transaction> transactions = new ArrayList<>();
+    private int nextTransactionId = 1;
 
     protected Account(String accountNumber, String branch, Customer owner) {
         if (accountNumber == null || accountNumber.isBlank()) {
@@ -82,7 +83,7 @@ public abstract class Account implements Transactable {
     }
 
     protected void recordTransaction(TransactionType type, double amount) {
-        transactions.add(new Transaction(type, money(amount), balance));
+        transactions.add(new Transaction(nextTransactionId++, type, money(amount), balance));
     }
 
     /** Adds money, updates the balance immediately and records the transaction. */
@@ -104,6 +105,7 @@ public abstract class Account implements Transactable {
         this.balance = money(storedBalance);
         this.transactions.clear();
         this.transactions.addAll(storedTransactions);
+        this.nextTransactionId = storedTransactions.size() + 1;
     }
 
     /** A valid amount is a real number that is still above zero after rounding to 2 decimals. */
@@ -111,7 +113,7 @@ public abstract class Account implements Transactable {
         return !Double.isNaN(amount) && !Double.isInfinite(amount) && money(amount) > 0;
     }
 
-    /** Money is always exact and rounded to 2 decimal places (BWP). */
+    /** Money is always rounded to 2 decimal places (BWP). */
     protected static double money(double value) {
         return Math.round(value * 100.0) / 100.0;
     }
