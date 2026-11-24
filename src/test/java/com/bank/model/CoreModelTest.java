@@ -1,7 +1,5 @@
 package com.bank.model;
 
-import java.math.BigDecimal;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -16,7 +14,7 @@ class CoreModelTest {
     private BankAdministrator admin;
     private IndividualCustomer thabo;
 
-    private static BigDecimal bd(String s) { return new BigDecimal(s); }
+    private static final double EPS = 0.001;
 
     @BeforeEach
     void setUp() {
@@ -54,7 +52,7 @@ class CoreModelTest {
     @Test
     void customerCanHoldAllThreeAccountTypes() {
         admin.openAccount(thabo, new SavingsAccount("SAV1", "Main", thabo));
-        admin.openAccount(thabo, new InvestmentAccount("INV1", "Main", thabo, bd("500")));
+        admin.openAccount(thabo, new InvestmentAccount("INV1", "Main", thabo, 500));
         admin.openAccount(thabo, new ChequeAccount("CHQ1", "Main", thabo, "Acme", "Plot 1"));
         assertEquals(3, thabo.getAccounts().size());
     }
@@ -70,9 +68,9 @@ class CoreModelTest {
     @Test
     void investmentNeedsAtLeast500() {
         assertThrows(IllegalArgumentException.class,
-                () -> new InvestmentAccount("INV2", "Main", thabo, bd("499.99")));
-        InvestmentAccount ok = new InvestmentAccount("INV3", "Main", thabo, bd("500.00"));
-        assertEquals(bd("500.00"), ok.getBalance());
+                () -> new InvestmentAccount("INV2", "Main", thabo, 499.99));
+        InvestmentAccount ok = new InvestmentAccount("INV3", "Main", thabo, 500.00);
+        assertEquals(500.00, ok.getBalance(), EPS);
         assertEquals(1, ok.getTransactionHistory().size());
     }
 
@@ -89,70 +87,70 @@ class CoreModelTest {
     @Test
     void savingsRejectsAllWithdrawals() {
         SavingsAccount s = new SavingsAccount("SAV2", "Main", thabo);
-        s.deposit(bd("1000"));
-        assertFalse(s.withdraw(bd("1")));
-        assertEquals(bd("1000.00"), s.getBalance());
+        s.deposit(1000);
+        assertFalse(s.withdraw(1));
+        assertEquals(1000.00, s.getBalance(), EPS);
     }
 
     @Test
     void withdrawalUpToBalanceOnlyAndNeverNegative() {
         ChequeAccount c = new ChequeAccount("CHQ4", "Main", thabo, "Acme", "Plot 1");
-        c.deposit(bd("300"));
-        assertFalse(c.withdraw(bd("300.01")));
-        assertTrue(c.withdraw(bd("300")));
-        assertEquals(bd("0.00"), c.getBalance());
-        assertFalse(c.withdraw(bd("0.01")));
+        c.deposit(300);
+        assertFalse(c.withdraw(300.01));
+        assertTrue(c.withdraw(300));
+        assertEquals(0.00, c.getBalance(), EPS);
+        assertFalse(c.withdraw(0.01));
     }
 
     @Test
     void invalidDepositsAreRejected() {
         SavingsAccount s = new SavingsAccount("SAV3", "Main", thabo);
-        assertFalse(s.deposit(bd("0")));
-        assertFalse(s.deposit(bd("-5")));
-        assertFalse(s.deposit(null));
+        assertFalse(s.deposit(0));
+        assertFalse(s.deposit(-5));
+        assertFalse(s.deposit(Double.NaN));
         assertTrue(s.getTransactionHistory().isEmpty());
     }
 
     @Test
     void everyTransactionIsRecordedWithResultingBalance() {
         ChequeAccount c = new ChequeAccount("CHQ5", "Main", thabo, "Acme", "Plot 1");
-        c.deposit(bd("100"));
-        c.withdraw(bd("40.50"));
+        c.deposit(100);
+        c.withdraw(40.50);
         var h = c.getTransactionHistory();
         assertEquals(2, h.size());
         assertEquals(TransactionType.DEPOSIT, h.get(0).getType());
-        assertEquals(bd("100.00"), h.get(0).getBalanceAfter());
+        assertEquals(100.00, h.get(0).getBalanceAfter(), EPS);
         assertEquals(TransactionType.WITHDRAWAL, h.get(1).getType());
-        assertEquals(bd("59.50"), h.get(1).getBalanceAfter());
+        assertEquals(59.50, h.get(1).getBalanceAfter(), EPS);
         assertNotNull(h.get(1).getDateTime());
     }
 
     @Test
     void overloadedDepositWorks() {
         SavingsAccount s = new SavingsAccount("SAV4", "Main", thabo);
-        assertTrue(s.deposit(bd("50"), "Birthday money"));
-        assertEquals(bd("50.00"), s.getBalance());
+        assertTrue(s.deposit(50, "Birthday money"));
+        assertEquals(50.00, s.getBalance(), EPS);
     }
 
     @Test
     void monthlyInterestRatesAndRecording() {
         SavingsAccount s = new SavingsAccount("SAV5", "Main", thabo);
-        s.deposit(bd("1000"));
-        InvestmentAccount i = new InvestmentAccount("INV4", "Main", thabo, bd("1000"));
-        assertEquals(bd("0.50"), s.calculateInterest());   // 0.05%
-        assertEquals(bd("50.00"), i.calculateInterest());  // 5%
+        s.deposit(1000);
+        InvestmentAccount i = new InvestmentAccount("INV4", "Main", thabo, 1000);
+        assertEquals(0.50, s.calculateInterest(), EPS);   // 0.05%
+        assertEquals(50.00, i.calculateInterest(), EPS);  // 5%
 
         Transaction t = i.payInterest();
         assertEquals(TransactionType.INTEREST, t.getType());
-        assertEquals(bd("1050.00"), i.getBalance());
-        assertEquals(bd("1050.00"), t.getBalanceAfter());
+        assertEquals(1050.00, i.getBalance(), EPS);
+        assertEquals(1050.00, t.getBalanceAfter(), EPS);
     }
 
     @Test
     void interestRoundsToTwoDecimalPlaces() {
         SavingsAccount s = new SavingsAccount("SAV6", "Main", thabo);
-        s.deposit(bd("123.45"));                           // 0.0617 -> 0.06
-        assertEquals(bd("0.06"), s.calculateInterest());
+        s.deposit(123.45);                           // 0.0617 -> 0.06
+        assertEquals(0.06, s.calculateInterest(), EPS);
     }
 
     @Test
@@ -168,21 +166,30 @@ class CoreModelTest {
         ChequeAccount c = new ChequeAccount("CHQ6", "Main", thabo, "Acme", "Plot 1");
         admin.openAccount(thabo, s);
         admin.openAccount(thabo, c);
-        s.deposit(bd("2000"));
-        c.deposit(bd("2000"));
+        s.deposit(2000);
+        c.deposit(2000);
         admin.runMonthlyInterest();
-        assertEquals(bd("2001.00"), s.getBalance());
-        assertEquals(bd("2000.00"), c.getBalance());
+        assertEquals(2001.00, s.getBalance(), EPS);
+        assertEquals(2000.00, c.getBalance(), EPS);
+    }
+
+    @Test
+    void floatingPointErrorsAreRoundedAway() {
+        SavingsAccount s = new SavingsAccount("SAV11", "Main", thabo);
+        s.deposit(0.1);
+        s.deposit(0.2);
+        assertEquals(0.30, s.getBalance(), EPS);
+        assertEquals(0.3, s.getBalance(), 0.0);   // exactly 0.3, not 0.30000000000000004
     }
 
     @Test
     void polymorphicWithdrawBehavesPerAccountType() {
         Account savings = new SavingsAccount("SAV10", "Main", thabo);
         Account cheque = new ChequeAccount("CHQ10", "Main", thabo, "Acme", "Plot 1");
-        savings.deposit(bd("100"));
-        cheque.deposit(bd("100"));
-        assertFalse(savings.withdraw(bd("10")));
-        assertTrue(cheque.withdraw(bd("10")));
+        savings.deposit(100);
+        cheque.deposit(100);
+        assertFalse(savings.withdraw(10));
+        assertTrue(cheque.withdraw(10));
     }
 
     @Test
