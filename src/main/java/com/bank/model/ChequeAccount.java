@@ -1,7 +1,5 @@
 package com.bank.model;
 
-import java.math.BigDecimal;
-
 /**
  * Cheque account: only for employed individual customers. Deposits and
  * withdrawals of any amount up to the available balance. Pays no interest.
@@ -25,9 +23,11 @@ public class ChequeAccount extends Account {
     }
 
     @Override
-    public boolean withdraw(BigDecimal amount) {
-        if (!isValidAmount(amount) || amount.compareTo(getBalance()) > 0) return false;
-        debit(amount, TransactionType.WITHDRAWAL);
+    public boolean withdraw(double amount) {
+        if (!isValidAmount(amount)) return false;
+        double rounded = money(amount);
+        if (rounded > getBalance()) return false;
+        debit(rounded, TransactionType.WITHDRAWAL);
         return true;
     }
 

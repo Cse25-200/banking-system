@@ -1,19 +1,17 @@
 package com.bank.model;
 
-import java.math.BigDecimal;
-
 /**
  * Investment account: opened with at least BWP 500.00, allows deposits and
  * withdrawals up to the available balance, pays 5% monthly interest.
  */
 public class InvestmentAccount extends Account implements InterestBearing {
-    public static final BigDecimal INTEREST_RATE = new BigDecimal("0.05");
-    public static final BigDecimal MIN_OPENING_DEPOSIT = new BigDecimal("500.00");
+    public static final double INTEREST_RATE = 0.05;
+    public static final double MIN_OPENING_DEPOSIT = 500.00;
 
     public InvestmentAccount(String accountNumber, String branch, Customer owner,
-                             BigDecimal openingDeposit) {
+                             double openingDeposit) {
         super(accountNumber, branch, owner);
-        if (openingDeposit == null || openingDeposit.compareTo(MIN_OPENING_DEPOSIT) < 0) {
+        if (Double.isNaN(openingDeposit) || openingDeposit < MIN_OPENING_DEPOSIT) {
             throw new IllegalArgumentException(
                     "An investment account needs an opening deposit of at least BWP 500.00");
         }
@@ -22,24 +20,26 @@ public class InvestmentAccount extends Account implements InterestBearing {
 
     /** Allowed up to the available balance; the balance can never go below zero. */
     @Override
-    public boolean withdraw(BigDecimal amount) {
-        if (!isValidAmount(amount) || amount.compareTo(getBalance()) > 0) return false;
-        debit(amount, TransactionType.WITHDRAWAL);
+    public boolean withdraw(double amount) {
+        if (!isValidAmount(amount)) return false;
+        double rounded = money(amount);
+        if (rounded > getBalance()) return false;
+        debit(rounded, TransactionType.WITHDRAWAL);
         return true;
     }
 
     @Override
-    public BigDecimal getInterestRate() { return INTEREST_RATE; }
+    public double getInterestRate() { return INTEREST_RATE; }
 
     @Override
-    public BigDecimal calculateInterest() {
-        return money(getBalance().multiply(INTEREST_RATE));
+    public double calculateInterest() {
+        return money(getBalance() * INTEREST_RATE);
     }
 
     @Override
     public Transaction payInterest() {
-        BigDecimal interest = calculateInterest();
-        if (interest.signum() <= 0) return null;
+        double interest = calculateInterest();
+        if (interest <= 0) return null;
         return credit(interest, TransactionType.INTEREST);
     }
 
