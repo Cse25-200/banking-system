@@ -1,12 +1,10 @@
 package com.bank.model;
 
-import java.math.BigDecimal;
-
 /** Anything that can receive deposits and (maybe) allow withdrawals. */
 public interface Transactable {
-    boolean deposit(BigDecimal amount);
+    boolean deposit(double amount);
 
-    boolean withdraw(BigDecimal amount);
+    boolean withdraw(double amount);
 
-    BigDecimal getBalance();
+    double getBalance();
 }
