@@ -20,15 +20,15 @@ public abstract class Account implements Transactable {
     private int nextTransactionId = 1;
 
     protected Account(String accountNumber, String branch, Customer owner) {
-        if (accountNumber == null || accountNumber.isBlank()) {
-            throw new IllegalArgumentException("Account number is required");
+
+        if (accountNumber == null || accountNumber.isBlank()
+                || branch == null || branch.isBlank()
+                || owner == null) {
+
+            throw new IllegalArgumentException(
+                    "Account number, branch and owner are required.");
         }
-        if (branch == null || branch.isBlank()) {
-            throw new IllegalArgumentException("Branch is required");
-        }
-        if (owner == null) {
-            throw new IllegalArgumentException("An account must have an owning customer");
-        }
+
         this.accountNumber = accountNumber.trim();
         this.branch = branch.trim();
         this.owner = owner;
