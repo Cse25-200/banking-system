@@ -30,11 +30,24 @@ public class BankAdministrator extends User {
 
     /** Opens an account for a registered customer. */
     public void openAccount(Customer c, Account a) {
-        if (c == null || !customers.contains(c)) {
-            throw new IllegalArgumentException("Customer must be registered first");
-        }
-        c.addAccount(a);
+
+    if (c == null || a == null) {
+        throw new IllegalArgumentException(
+                "Customer and account are required");
     }
+
+    if (!customers.contains(c)) {
+        throw new IllegalArgumentException(
+                "Customer must be registered first");
+    }
+
+    if (a.getOwner() != c) {
+        throw new IllegalArgumentException(
+                "This account belongs to another customer");
+    }
+
+    c.addAccount(a);
+}
 
     /** Pays interest on every interest-bearing account of every registered customer. */
     public void runMonthlyInterest() {
@@ -47,7 +60,9 @@ public class BankAdministrator extends User {
         }
     }
 
-    public String getStaffId() { return staffId; }
+    public String getStaffId() {
+         return staffId; }
 
-    public List<Customer> getCustomers() { return Collections.unmodifiableList(customers); }
+    public List<Customer> getCustomers() {
+         return Collections.unmodifiableList(customers); }
 }

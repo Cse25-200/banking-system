@@ -42,19 +42,26 @@ public abstract class User {
         return loggedIn;
     }
 
-    public void logout() { loggedIn = false; }
+    public void logout() {
+         loggedIn = false; }
 
-    public boolean isLoggedIn() { return loggedIn; }
+    public boolean isLoggedIn() { 
+        return loggedIn; }
 
-    public int getUserId() { return userId; }
+    public int getUserId() {
+         return userId; }
 
-    public void setUserId(int userId) { this.userId = userId; }
+    public void setUserId(int userId) {
+         this.userId = userId; }
 
-    public String getUsername() { return username; }
+    public String getUsername() { 
+        return username; }
 
-    public Role getRole() { return role; }
+    public Role getRole() {
+         return role; }
 
-    public String getPasswordHash() { return passwordHash; }
+    public String getPasswordHash() { 
+        return passwordHash; }
 
     public static String hash(String password) {
         try {
