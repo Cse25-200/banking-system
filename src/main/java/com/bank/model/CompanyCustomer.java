@@ -21,10 +21,13 @@ public class CompanyCustomer extends Customer {
         this.registrationNumber = registrationNumber;
     }
 
-    public String getCompanyName() { return companyName; }
+    public String getCompanyName() {
+         return companyName; }
 
-    public String getRegistrationNumber() { return registrationNumber; }
+    public String getRegistrationNumber() {
+         return registrationNumber; }
 
     @Override
-    public String getDisplayName() { return companyName; }
+    public String getDisplayName() { 
+        return companyName; }
 }
