@@ -11,11 +11,14 @@ public class SavingsAccount extends Account implements InterestBearing {
     /** Savings accounts never allow withdrawals. */
     @Override
     public boolean withdraw(double amount) {
+        System.out.println(
+                "Withdrawal rejected. Savings accounts do not allow withdrawals.");
         return false;
     }
 
     @Override
-    public double getInterestRate() { return INTEREST_RATE; }
+    public double getInterestRate() { 
+        return INTEREST_RATE; }
 
     @Override
     public double calculateInterest() {
@@ -30,5 +33,6 @@ public class SavingsAccount extends Account implements InterestBearing {
     }
 
     @Override
-    public String getAccountType() { return "Savings"; }
+    public String getAccountType() {
+         return "Savings"; }
 }

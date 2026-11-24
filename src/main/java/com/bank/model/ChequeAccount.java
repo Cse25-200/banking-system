@@ -18,8 +18,8 @@ public class ChequeAccount extends Account {
                 || employerAddress == null || employerAddress.isBlank()) {
             throw new IllegalArgumentException("Employer name and address are required");
         }
-        this.employerName = employerName.trim();
-        this.employerAddress = employerAddress.trim();
+        this.employerName = employerName;
+        this.employerAddress = employerAddress;
     }
 
     @Override
@@ -31,10 +31,13 @@ public class ChequeAccount extends Account {
         return true;
     }
 
-    public String getEmployerName() { return employerName; }
+    public String getEmployerName() { 
+        return employerName; }
 
-    public String getEmployerAddress() { return employerAddress; }
+    public String getEmployerAddress() {
+         return employerAddress; }
 
     @Override
-    public String getAccountType() { return "Cheque"; }
+    public String getAccountType() { 
+        return "Cheque"; }
 }
