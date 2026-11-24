@@ -34,11 +34,14 @@ public class LoginView {
         root.getChildren().addAll(title, usernameField, passwordField, loginButton, messageLabel);
     }
 
-    public Parent getRoot() { return root; }
+    public Parent getRoot() { 
+        return root; }
 
-    public String getUsername() { return usernameField.getText(); }
+    public String getUsername() {
+         return usernameField.getText(); }
 
-    public String getPassword() { return passwordField.getText(); }
+    public String getPassword() { 
+        return passwordField.getText(); }
 
     /** The code that runs when the user presses "Log in" or Enter. */
     public void setOnLogin(Runnable action) {
@@ -48,5 +51,11 @@ public class LoginView {
     public void showError(String message) {
         messageLabel.setText(message);
         passwordField.clear();
+    }
+
+    public void clear(){
+        usernameField.clear();
+        passwordField.clear();
+        messageLabel.setText("");
     }
 }
