@@ -27,16 +27,22 @@ public class IndividualCustomer extends Customer {
         this.employed = employed;
     }
 
-    public String getFirstName() { return firstName; }
+    public String getFirstName() { 
+        return firstName; }
 
-    public String getSurname() { return surname; }
+    public String getSurname() { 
+        return surname; }
 
-    public String getIdNumber() { return idNumber; }
+    public String getIdNumber() { 
+        return idNumber; }
 
-    public boolean isEmployed() { return employed; }
+    public boolean isEmployed() { 
+        return employed; }
 
-    public void setEmployed(boolean employed) { this.employed = employed; }
+    public void setEmployed(boolean employed) {
+         this.employed = employed; }
 
     @Override
-    public String getDisplayName() { return firstName + " " + surname; }
+    public String getDisplayName() { 
+        return firstName + " " + surname; }
 }

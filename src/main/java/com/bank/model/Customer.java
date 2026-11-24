@@ -12,7 +12,7 @@ public abstract class Customer extends User {
     private String email;
     private final List<Account> accounts = new ArrayList<>();
 
-    protected Customer(int userId, String username, String password, String customerId,
+   protected Customer(int userId, String username, String password, String customerId,
                        String address, String phoneNumber, String email) {
         super(userId, username, password, Role.CUSTOMER);
         this.customerId = requireText(customerId, "Customer ID");
@@ -20,6 +20,7 @@ public abstract class Customer extends User {
         this.phoneNumber = requireText(phoneNumber, "Phone number");
         this.email = requireText(email, "Email");
     }
+
 
     protected Customer(int userId, String username, String passwordHash, boolean alreadyHashed,
                        String customerId, String address, String phoneNumber, String email) {
