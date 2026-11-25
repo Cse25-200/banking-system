@@ -101,8 +101,7 @@ public class AccountView {
 
     // ----- what the controller can set -----
 
-    public void setWelcome(String text) {
-         welcomeLabel.setText(text); }
+    public void setWelcome(String text) { welcomeLabel.setText(text); }
 
     public void setAccounts(List<Account> accounts) {
         accountBox.getItems().setAll(accounts);
@@ -125,28 +124,21 @@ public class AccountView {
         messageLabel.setText(text);
     }
 
-    public void clearAmount() {
-         amountField.clear(); }
+    public void clearAmount() { amountField.clear(); }
 
     // ----- what the controller can read -----
 
-    public Account getSelectedAccount() {
-         return accountBox.getValue(); }
+    public Account getSelectedAccount() { return accountBox.getValue(); }
 
-    public String getAmountText() { 
-        return amountField.getText(); }
+    public String getAmountText() { return amountField.getText(); }
 
     // ----- hooks for the controller -----
 
-    public void setOnAccountSelected(Runnable action) {
-         accountBox.setOnAction(e -> action.run()); }
+    public void setOnAccountSelected(Runnable action) { accountBox.setOnAction(e -> action.run()); }
 
-    public void setOnDeposit(Runnable action) {
-         depositButton.setOnAction(e -> action.run()); }
+    public void setOnDeposit(Runnable action) { depositButton.setOnAction(e -> action.run()); }
 
-    public void setOnWithdraw(Runnable action) {
-         withdrawButton.setOnAction(e -> action.run()); }
+    public void setOnWithdraw(Runnable action) { withdrawButton.setOnAction(e -> action.run()); }
 
-    public void setOnLogout(Runnable action) {
-         logoutButton.setOnAction(e -> action.run()); }
+    public void setOnLogout(Runnable action) { logoutButton.setOnAction(e -> action.run()); }
 }

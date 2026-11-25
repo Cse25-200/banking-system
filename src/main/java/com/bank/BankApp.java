@@ -12,6 +12,7 @@ import com.bank.model.User;
 import com.bank.view.AccountView;
 import com.bank.view.AdminView;
 import com.bank.view.LoginView;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -131,6 +132,7 @@ public class BankApp extends Application {
         view.setOnOpenAccount(() -> handleOpenAccount(view));
         view.setOnRunInterest(() -> {
             admin.runMonthlyInterest();
+            view.refresh();
             view.showMessage("Monthly interest paid on all Savings and Investment accounts", false);
         });
         view.setOnLogout(() -> {

@@ -118,11 +118,7 @@ public abstract class Account implements Transactable {
         return Math.round(value * 100.0) / 100.0;
     }
 
-    @Override
-    public String toString() {
-        return String.format("%s account %s (BWP %.2f)", getAccountType(), accountNumber, balance);
-    }
-    /**Total interest paid into this account so far */
+    /** Total interest paid into this account so far. */
     public double getInterestEarned() {
         double total = 0;
         for (Transaction t : transactions) {
@@ -131,5 +127,10 @@ public abstract class Account implements Transactable {
             }
         }
         return money(total);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s account %s (BWP %.2f)", getAccountType(), accountNumber, balance);
     }
 }

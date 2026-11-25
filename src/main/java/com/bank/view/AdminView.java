@@ -1,9 +1,14 @@
 package com.bank.view;
 
+import com.bank.model.Account;
 import com.bank.model.Customer;
 import com.bank.model.IndividualCustomer;
+import com.bank.model.InterestBearing;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -27,7 +32,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
-/** Administrator screen: register customers, open accounts, run monthly interest. */
+/** Administrator screen: register customers, open accounts, view customers and run interest. */
 public class AdminView {
     private final BorderPane root = new BorderPane();
     private final Label welcomeLabel = new Label();
@@ -61,7 +66,12 @@ public class AdminView {
     private final Button openAccountButton = new Button("Open account");
 
     // ---- Customers tab ----
+    private final ObservableList<Customer> allCustomers = FXCollections.observableArrayList();
+    private final FilteredList<Customer> visibleCustomers = new FilteredList<>(allCustomers, c -> true);
+    private final TextField searchField = new TextField();
     private final TableView<Customer> customerTable = new TableView<>();
+    private final TableView<Account> accountTable = new TableView<>();
+    private final Label accountsHeading = new Label("Select a customer to see their accounts");
     private final Button interestButton = new Button("Run monthly interest");
 
     public AdminView() {
@@ -169,6 +179,15 @@ public class AdminView {
     }
 
     private Tab buildCustomersTab() {
+        searchField.setPromptText("Search by name, customer ID or username");
+        searchField.setPrefWidth(320);
+        searchField.textProperty().addListener((obs, oldText, newText) ->
+                visibleCustomers.setPredicate(c -> matchesSearch(c, newText)));
+
+        HBox topRow = new HBox(12, new Label("Search:"), searchField, interestButton);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        // ----- customers table -----
         TableColumn<Customer, String> idCol = new TableColumn<>("Customer ID");
         idCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCustomerId()));
         TableColumn<Customer, String> nameCol = new TableColumn<>("Name");
@@ -179,12 +198,47 @@ public class AdminView {
         TableColumn<Customer, String> countCol = new TableColumn<>("Accounts");
         countCol.setCellValueFactory(c -> new SimpleStringProperty(
                 String.valueOf(c.getValue().getAccounts().size())));
-        customerTable.getColumns().addAll(idCol, nameCol, typeCol, countCol);
+        TableColumn<Customer, String> totalCol = new TableColumn<>("Total balance (BWP)");
+        totalCol.setCellValueFactory(c -> new SimpleStringProperty(
+                String.format("%.2f", totalBalance(c.getValue()))));
+        customerTable.getColumns().addAll(idCol, nameCol, typeCol, countCol, totalCol);
         customerTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        customerTable.setPlaceholder(new Label("No customers registered"));
+        customerTable.setPlaceholder(new Label("No customers found"));
+        customerTable.setItems(visibleCustomers);
+        customerTable.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldCustomer, newCustomer) -> showAccountsOf(newCustomer));
         VBox.setVgrow(customerTable, Priority.ALWAYS);
 
-        VBox box = new VBox(12, interestButton, customerTable);
+        // ----- accounts of the selected customer -----
+        accountsHeading.setStyle("-fx-font-weight: bold;");
+
+        TableColumn<Account, String> typeAccCol = new TableColumn<>("Account type");
+        typeAccCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getAccountType()));
+        TableColumn<Account, String> numberCol = new TableColumn<>("Account no.");
+        numberCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getAccountNumber()));
+        TableColumn<Account, String> branchCol = new TableColumn<>("Branch");
+        branchCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getBranch()));
+        TableColumn<Account, String> balanceCol = new TableColumn<>("Balance (BWP)");
+        balanceCol.setCellValueFactory(c -> new SimpleStringProperty(
+                String.format("%.2f", c.getValue().getBalance())));
+        TableColumn<Account, String> rateCol = new TableColumn<>("Monthly interest rate");
+        rateCol.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue() instanceof InterestBearing ib
+                        ? String.format("%.2f%%", ib.getInterestRate() * 100) : "No interest"));
+        TableColumn<Account, String> dueCol = new TableColumn<>("Interest due next run (BWP)");
+        dueCol.setCellValueFactory(c -> new SimpleStringProperty(
+                c.getValue() instanceof InterestBearing ib
+                        ? String.format("%.2f", ib.calculateInterest()) : "-"));
+        TableColumn<Account, String> earnedCol = new TableColumn<>("Interest earned so far (BWP)");
+        earnedCol.setCellValueFactory(c -> new SimpleStringProperty(
+                String.format("%.2f", c.getValue().getInterestEarned())));
+        accountTable.getColumns().addAll(typeAccCol, numberCol, branchCol, balanceCol,
+                rateCol, dueCol, earnedCol);
+        accountTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        accountTable.setPlaceholder(new Label("No accounts to show"));
+        VBox.setVgrow(accountTable, Priority.ALWAYS);
+
+        VBox box = new VBox(10, topRow, customerTable, accountsHeading, accountTable);
         box.setPadding(new Insets(15));
         return tab("Customers", box);
     }
@@ -214,20 +268,57 @@ public class AdminView {
         node.setManaged(visible);
     }
 
+    private static boolean matchesSearch(Customer c, String text) {
+        if (text == null || text.isBlank()) return true;
+        String t = text.trim().toLowerCase();
+        return c.getDisplayName().toLowerCase().contains(t)
+                || c.getCustomerId().toLowerCase().contains(t)
+                || c.getUsername().toLowerCase().contains(t);
+    }
+
+    private static double totalBalance(Customer c) {
+        double total = 0;
+        for (Account a : c.getAccounts()) total += a.getBalance();
+        return total;
+    }
+
+    private void showAccountsOf(Customer c) {
+        if (c == null) {
+            accountsHeading.setText("Select a customer to see their accounts");
+            accountTable.getItems().clear();
+            return;
+        }
+        accountsHeading.setText(String.format("Accounts of %s - total balance BWP %.2f",
+                c.getDisplayName(), totalBalance(c)));
+        accountTable.getItems().setAll(c.getAccounts());
+        accountTable.refresh();
+    }
+
     // ================= what the controller can set =================
 
-    public Parent getRoot() { 
-        return root; }
+    public Parent getRoot() { return root; }
 
-    public void setWelcome(String text) {
-         welcomeLabel.setText(text); }
+    public void setWelcome(String text) { welcomeLabel.setText(text); }
 
     /** Refreshes the customer drop-down and the customers table. */
     public void setCustomers(List<Customer> customers) {
         Customer selected = customerBox.getValue();
+        Customer viewing = customerTable.getSelectionModel().getSelectedItem();
+
         customerBox.getItems().setAll(customers);
         if (selected != null && customers.contains(selected)) customerBox.setValue(selected);
-        customerTable.getItems().setAll(customers);
+
+        allCustomers.setAll(customers);
+        if (viewing != null && customers.contains(viewing)) {
+            customerTable.getSelectionModel().select(viewing);
+        }
+        refresh();
+    }
+
+    /** Re-reads balances and interest from the model (call after money moves). */
+    public void refresh() {
+        customerTable.refresh();
+        showAccountsOf(customerTable.getSelectionModel().getSelectedItem());
     }
 
     public void showMessage(String text, boolean isError) {
@@ -255,56 +346,32 @@ public class AdminView {
 
     // ================= what the controller can read =================
 
-    public String getCustomerType() {
-         return customerTypeBox.getValue(); }
-    public String getUsername() { 
-        return usernameField.getText(); }
-    public String getPassword() { 
-        return passwordField.getText(); }
-    public String getCustomerId() {
-         return customerIdField.getText(); }
-    public String getAddress() { 
-        return addressField.getText(); }
-    public String getPhone() { 
-        return phoneField.getText(); }
-    public String getEmail() { 
-        return emailField.getText(); }
-    public String getFirstName() {
-         return firstNameField.getText(); }
-    public String getSurname() {
-         return surnameField.getText(); }
-    public String getIdNumber() {
-         return idNumberField.getText(); }
-    public boolean isEmployed() {
-         return employedBox.isSelected(); }
-    public String getCompanyName() {
-         return companyNameField.getText(); }
-    public String getRegistrationNumber() { 
-        return regNumberField.getText(); }
+    public String getCustomerType() { return customerTypeBox.getValue(); }
+    public String getUsername() { return usernameField.getText(); }
+    public String getPassword() { return passwordField.getText(); }
+    public String getCustomerId() { return customerIdField.getText(); }
+    public String getAddress() { return addressField.getText(); }
+    public String getPhone() { return phoneField.getText(); }
+    public String getEmail() { return emailField.getText(); }
+    public String getFirstName() { return firstNameField.getText(); }
+    public String getSurname() { return surnameField.getText(); }
+    public String getIdNumber() { return idNumberField.getText(); }
+    public boolean isEmployed() { return employedBox.isSelected(); }
+    public String getCompanyName() { return companyNameField.getText(); }
+    public String getRegistrationNumber() { return regNumberField.getText(); }
 
-    public Customer getSelectedCustomer() {
-         return customerBox.getValue(); }
-    public String getAccountType() {
-         return accountTypeBox.getValue(); }
-    public String getAccountNumber() {
-         return accountNumberField.getText(); }
-    public String getBranch() {
-         return branchField.getText(); }
-    public String getOpeningDeposit() {
-         return openingDepositField.getText(); }
-    public String getEmployerName() { 
-        return employerNameField.getText(); }
-    public String getEmployerAddress() {
-         return employerAddressField.getText(); }
+    public Customer getSelectedCustomer() { return customerBox.getValue(); }
+    public String getAccountType() { return accountTypeBox.getValue(); }
+    public String getAccountNumber() { return accountNumberField.getText(); }
+    public String getBranch() { return branchField.getText(); }
+    public String getOpeningDeposit() { return openingDepositField.getText(); }
+    public String getEmployerName() { return employerNameField.getText(); }
+    public String getEmployerAddress() { return employerAddressField.getText(); }
 
     // ================= hooks for the controller =================
 
-    public void setOnRegister(Runnable action) {
-         registerButton.setOnAction(e -> action.run()); }
-    public void setOnOpenAccount(Runnable action) {
-         openAccountButton.setOnAction(e -> action.run()); }
-    public void setOnRunInterest(Runnable action) {
-         interestButton.setOnAction(e -> action.run()); }
-    public void setOnLogout(Runnable action) { 
-        logoutButton.setOnAction(e -> action.run()); }
+    public void setOnRegister(Runnable action) { registerButton.setOnAction(e -> action.run()); }
+    public void setOnOpenAccount(Runnable action) { openAccountButton.setOnAction(e -> action.run()); }
+    public void setOnRunInterest(Runnable action) { interestButton.setOnAction(e -> action.run()); }
+    public void setOnLogout(Runnable action) { logoutButton.setOnAction(e -> action.run()); }
 }
