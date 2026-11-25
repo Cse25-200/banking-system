@@ -122,4 +122,14 @@ public abstract class Account implements Transactable {
     public String toString() {
         return String.format("%s account %s (BWP %.2f)", getAccountType(), accountNumber, balance);
     }
+    /**Total interest paid into this account so far */
+    public double getInterestEarned() {
+        double total = 0;
+        for (Transaction t : transactions) {
+            if (t.getType() == TransactionType.INTEREST) {
+                total += t.getAmount();
+            }
+        }
+        return money(total);
+    }
 }
