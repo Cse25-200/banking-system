@@ -1,7 +1,12 @@
 package com.bank.model;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -193,5 +198,14 @@ class CoreModelTest {
                 "info@acme.co.bw", "Acme Ltd", "BW000123");
         assertEquals("Acme Ltd", co.getDisplayName());
         assertEquals("Thabo Molefe", thabo.getDisplayName());
+    }
+        @Test
+    void interestEarnedAddsUpInterestTransactions() {
+        InvestmentAccount i = new InvestmentAccount("INV5", "Main", thabo, 1000);
+        assertEquals(0.00, i.getInterestEarned(), EPS);
+        i.payInterest();   // 50.00 -> balance 1050.00
+        i.payInterest();   // 52.50 -> balance 1102.50
+        assertEquals(102.50, i.getInterestEarned(), EPS);
+        assertEquals(1102.50, i.getBalance(), EPS);
     }
 }
